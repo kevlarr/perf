@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+# echo "Clearing prior report"
+# rm report.csv 2>/dev/null || true
+# echo "file,n,code,user,sys" > report.csv
+
+limits=(1000 5000 10000 50000 100000)
+iterations=10
+
+run() {
+  for n in ${limits[@]}; do
+    for i in {1..10}; do
+      echo "${1} ${2} /dev/null ${n}"
+      \time --output=report.csv --append --format="${2},${n},%x,%U,%S" $1 $2 /dev/null $n
+    done
+  done
+}
+
+files=(
+  # "py/main_tuple.py"
+  # "py/main_dict.py"
+  # "py/main_csv_dict.py"
+  # "py/main_csv_dataclass.py"
+)
+
+for file in ${files[@]}; do
+  run "python3" $file
+done
+
+files=(
+  # "js/main_array.js"
+  # "js/main_object.js"
+  # "js/main_csv.js"
+)
+
+for file in ${files[@]}; do
+  run "node" $file
+done
+
+files=(
+  "fs_tuple"
+  "fs_struct"
+  "csv_serde"
+)
+
+for file in ${files[@]}; do
+  for n in ${limits[@]}; do
+    for i in {1..10}; do
+      echo "rs/target/release/${file} /dev/null ${n}"
+      \time --output=report.csv --append --format="rs/${file},${n},%x,%U,%S" rs/target/release/${file} /dev/null $n
+    done
+  done
+done

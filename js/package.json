@@ -1,0 +1,15 @@
+{
+  "name": "js",
+  "version": "1.0.0",
+  "description": "",
+  "author": "",
+  "license": "ISC",
+  "scripts": {
+    "main-obj": "node main_object.js",
+    "main-array": "node main_array.js",
+    "main-csv": "node main_csv.js"
+  },
+  "dependencies": {
+    "csv": "^6.2.1"
+  }
+}

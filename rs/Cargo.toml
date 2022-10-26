@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+  "fs_tuple",
+  "fs_struct",
+  "csv_serde",
+]
