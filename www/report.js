@@ -295,6 +295,14 @@ const ChartHelpers = {
             usePointStyle: true,
             pointStyle: 'line',
             pointStyleWidth: 36,
+
+            sort(a, b, { datasets, labels }) {
+              let xMax = labels[labels.length - 1];
+              let yA = datasets[a.datasetIndex].data[xMax];
+              let yB = datasets[b.datasetIndex].data[xMax];
+
+              return yB - yA;
+            },
           },
         },
         title: {
