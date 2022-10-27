@@ -10,15 +10,14 @@
                 padding: 0;
             }
             body {
+                box-sizing: border-box;
                 display: flex;
                 flex-direction: column;
-            }
-            main {
                 padding: 1rem;
             }
             form {
                 display: flex;
-                flex-direction: row;
+                margin-bottom: 2rem;
             }
             fieldset {
                 margin-right: 2rem;
@@ -26,38 +25,54 @@
             label {
                 font-size: 0.75rem;
             }
+            #chartContainer {
+                position: relative;
+                flex: 1;
+                padding: 1rem;
+            }
         </style>
     </head>
     <body>
-        <main>
-            <form>
-                <fieldset>
-                    <legend>Languages</legend>
+        <form>
+            <fieldset>
+                <legend>File</legend>
 
-                    <input type="checkbox" name="language" id="langJs" value="js"/>
-                    <label for="langJs">JavaScript</label>
+                <input type="text" name="file" id="resultFile"/>
+            </fieldset>
 
-                    <input type="checkbox" name="language" id="langPy" value="py"/>
-                    <label for="langPy">Python</label>
+            <fieldset>
+                <legend>Languages</legend>
 
-                    <input type="checkbox" name="language" id="langRs" value="rs"/>
-                    <label for="langRs">Rust</label>
-                </fieldset>
-                <fieldset>
-                    <legend>Metric</legend>
+                <input type="checkbox" name="language" id="langJs" value="js"/>
+                <label for="langJs">JavaScript</label>
 
-                    <input type="radio" name="metric" id="metricUser" value="user"/>
-                    <label for="metricUser">Process Time</label>
+                <input type="checkbox" name="language" id="langPy" value="py"/>
+                <label for="langPy">Python</label>
 
-                    <input type="radio" name="metric" id="metricSys" value="sys"/>
-                    <label for="metricSys">System Time</label>
+                <input type="checkbox" name="language" id="langRs" value="rs"/>
+                <label for="langRs">Rust</label>
+            </fieldset>
 
-                    <input type="radio" name="metric" id="metricMaxrss" value="maxrss"/>
-                    <label for="metricMaxrss">Max RSS</label>
-                </fieldset>
-            </form>
+            <fieldset>
+                <legend>Metric</legend>
+
+                <input type="radio" name="metric" id="metricUser" value="user"/>
+                <label for="metricUser">CPU Time (Process)</label>
+
+                <input type="radio" name="metric" id="metricSys" value="sys"/>
+                <label for="metricSys">CPU Time (System)</label>
+
+                <input type="radio" name="metric" id="metricMaxrss" value="maxrss"/>
+                <label for="metricMaxrss">Max RSS</label>
+            </fieldset>
+        </form>
+
+        <div id="error"></div>
+
+        <div id="chartContainer">
             <canvas id="mainCanvas"></canvas>
-        </main>
+        </div>
+
         <script src="report.js"></script>
     </body>
 </html>

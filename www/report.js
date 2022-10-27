@@ -1,5 +1,6 @@
 /**
- * Utility singleton to make working with known query parameters easier
+ * Utility singleton to make working with known query parameters easier,
+ * since not all query parameters are controlled by the `<form>` element
  */
 const PARAMS = new (class Params {
   #params;
@@ -11,15 +12,22 @@ const PARAMS = new (class Params {
   constructor() {
     this.#params = (new URL(document.location)).searchParams;
 
-    this.#file   = this.#params.get("file")   || "results.csv";
+    // Only metric makes sense to have a default value
     this.#metric = this.#params.get("metric") || "user";
 
+    this.#file   = this.#params.get("file");
     this.#excludedCommands = this.#getAll("excludedCommands");
     this.#excludedLanguages = this.#getAll("excludedLanguages");
   }
 
   get file() {
     return this.#file;
+  }
+
+  set file(filename) {
+    this.#file = filename;
+    this.#params.set("file", filename);
+    this.#updateQuery({ reload: true });
   }
 
   get metric() {
@@ -96,9 +104,22 @@ const PARAMS = new (class Params {
  * Retrieves CSV results and converts to list of objects
  */
 async function fetchResults(filename) {
+  if (!filename) { return null; }
+
   return fetch(filename)
-    .then(resp => resp.text())
-    .then(csvToObjects);
+    .then(resp => {
+      if (resp.status === 200) {
+        return resp.text();
+      }
+
+      throw new Error(resp.statusText);
+    })
+    .then(csvToObjects)
+    .catch(e => {
+      document.getElementById("error").innerText = e;
+
+      return null;
+    });
 }
 
 /**
@@ -220,12 +241,19 @@ const ChartHelpers = {
       case "sys":
         return "Time (seconds)";
       case "maxrss":
-        return "Max RSS (MB)";
+        return "Max Resident Set Size (MB)";
     }
   },
 };
 
 (async function main() {
+  let fileInput = document.getElementById("resultFile");
+
+  fileInput.value = PARAMS.file;
+  fileInput.addEventListener("blur", () => {
+    PARAMS.file = fileInput.value;
+  });
+
   document
     .querySelectorAll("input[type=checkbox][name='language']")
     .forEach(node => {
@@ -253,6 +281,12 @@ const ChartHelpers = {
     });
 
   const raw = await fetchResults(PARAMS.file);
+
+  if (!raw) {
+    fileInput.focus();
+    return;
+  }
+
   const grouped = groupResults(raw, PARAMS.metric);
   const averaged = averageResults(grouped);
 
@@ -274,6 +308,8 @@ const ChartHelpers = {
       datasets,
     },
     options: {
+      maintainAspectRatio: false,
+
       datasets: {
         line: {
           borderWidth: 1,
@@ -305,19 +341,16 @@ const ChartHelpers = {
             },
           },
         },
-        title: {
-          display: true,
-          text: ChartHelpers.title(PARAMS.metric),
-          font: {
-            size: 24,
-          },
-        },
       },
       scales: {
         x: {
           title: {
             display: true,
             text: "Data Size (elements)",
+            font: {
+              size: 18,
+              weight: "bold",
+            },
           },
           ticks: {
             callback(value, _index, _ticks) {
@@ -329,6 +362,10 @@ const ChartHelpers = {
           title: {
             display: true,
             text: ChartHelpers.yAxisLabel(PARAMS.metric),
+            font: {
+              size: 18,
+              weight: "bold",
+            },
           },
         },
       },
