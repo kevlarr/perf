@@ -1,10 +1,11 @@
 /**
- * Utility class to make working with known query parameters easier
+ * Utility singleton to make working with known query parameters easier
  */
-class Params {
+const PARAMS = new (class Params {
   #params;
   #file;
-  #hidden;
+  #excludedCommands;
+  #excludedLanguages;
   #metric;
 
   constructor() {
@@ -13,7 +14,8 @@ class Params {
     this.#file   = this.#params.get("file")   || "results.csv";
     this.#metric = this.#params.get("metric") || "user";
 
-    this.#hidden = (this.#params.get("hide") || "").split(",");
+    this.#excludedCommands = this.#getAll("excludedCommands");
+    this.#excludedLanguages = this.#getAll("excludedLanguages");
   }
 
   get file() {
@@ -30,26 +32,42 @@ class Params {
     this.#updateQuery({ reload: true });
   }
 
-  isCommandHidden(command) {
-    return this.#hidden.includes(command);
+  commandHidden(command) {
+    return this.#excludedCommands.has(command);
+  }
+
+  languageDisabled(lang) {
+    return this.#excludedLanguages.has(lang);
+  }
+
+  enableLanguage(lang) {
+    this.#excludedLanguages.delete(lang);
+    this.#updateExcludedLanguages();
+  }
+
+  disableLanguage(lang) {
+    this.#excludedLanguages.add(lang);
+    this.#updateExcludedLanguages();
   }
 
   showCommand(command) {
-    this.#hidden = this.#hidden.filter(cmd => cmd != command);
-    this.#updateHideParams();
+    this.#excludedCommands.delete(command);
+    this.#updateExcludedCommands();
   }
 
   hideCommand(command) {
-    if (!this.#hidden.includes(command)) {
-      this.#hidden.push(command);
-    }
-
-    this.#updateHideParams();
+    this.#excludedCommands.add(command);
+    this.#updateExcludedCommands();
   }
 
-  #updateHideParams({ reload } = { reload: false }) {
-    this.#params.set("hide", this.#hidden);
-    this.#updateQuery();
+  #updateExcludedCommands() {
+    this.#params.set("excludedCommands", Array.from(this.#excludedCommands));
+    this.#updateQuery({ reload: false });
+  }
+
+  #updateExcludedLanguages({ reload } = { reload: false }) {
+    this.#params.set("excludedLanguages", Array.from(this.#excludedLanguages));
+    this.#updateQuery({ reload: true });
   }
 
   #updateQuery({ reload } = { reload: false }) {
@@ -64,7 +82,15 @@ class Params {
       history.pushState(null, null, url);
     }
   }
-}
+
+  #getAll(key) {
+    let vals = this.#params.get(key);
+
+    return vals
+      ? new Set(vals.split(","))
+      : new Set();
+  }
+})();
 
 /**
  * Retrieves CSV results and converts to list of objects
@@ -200,19 +226,44 @@ const ChartHelpers = {
 };
 
 (async function main() {
-  const params = new Params();
+  document.querySelectorAll("#metricSelection a").forEach(node => {
+    const metric = node.getAttribute("data-metric");
 
-  const raw = await fetchResults(params.file);
-  const grouped = groupResults(raw, params.metric);
+    node.addEventListener("click", (_evt) => {
+      PARAMS.metric = metric;
+    });
+  });
+
+  document.querySelectorAll("#languageSelection li").forEach(node => {
+    const lang = node.getAttribute("data-lang");
+    const disabled = PARAMS.languageDisabled(lang);
+
+    if (disabled) {
+      node.classList.add("disabled");
+    }
+
+    node.addEventListener("click", (_evt) => {
+      disabled
+        ? PARAMS.enableLanguage(lang)
+        : PARAMS.disableLanguage(lang);
+    });
+  });
+
+  const raw = await fetchResults(PARAMS.file);
+  const grouped = groupResults(raw, PARAMS.metric);
   const averaged = averageResults(grouped);
 
-  const datasets = Object.entries(averaged).map(([command, vals]) => ({
-    label: command,
-    data: vals.reduce((obj, [x, y]) => ({...obj, [x]: y}), {}),
-    fill: false,
-    borderColor: `rgb(${ChartHelpers.lineColor(command)})`,
-    hidden: params.isCommandHidden(command),
-  }));
+  const datasets = Object.entries(averaged)
+    .filter(([command, _vals]) => (
+      !PARAMS.languageDisabled(command.slice(0, 2))
+    ))
+    .map(([command, vals]) => ({
+      label: command,
+      data: vals.reduce((obj, [x, y]) => ({...obj, [x]: y}), {}),
+      fill: false,
+      borderColor: `rgb(${ChartHelpers.lineColor(command)})`,
+      hidden: PARAMS.commandHidden(command),
+    }));
 
   new Chart(ChartHelpers.context(), {
     type: "line",
@@ -231,8 +282,8 @@ const ChartHelpers = {
 
           onClick(evt, item, legend) {
             item.hidden
-              ? params.showCommand(item.text)
-              : params.hideCommand(item.text);
+              ? PARAMS.showCommand(item.text)
+              : PARAMS.hideCommand(item.text);
 
             return Chart.defaults.plugins.legend.onClick(evt, item, legend);
           },
@@ -245,7 +296,7 @@ const ChartHelpers = {
         },
         title: {
           display: true,
-          text: ChartHelpers.title(params.metric),
+          text: ChartHelpers.title(PARAMS.metric),
           font: {
             size: 24,
           },
@@ -266,7 +317,7 @@ const ChartHelpers = {
         y: {
           title: {
             display: true,
-            text: ChartHelpers.yAxisLabel(params.metric),
+            text: ChartHelpers.yAxisLabel(PARAMS.metric),
           },
         },
       },

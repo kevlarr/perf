@@ -2,7 +2,6 @@
 <html>
     <head>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-        <script src="report.js"></script>
 
         <style>
             html, body {
@@ -36,18 +35,43 @@
             main {
                 padding: 1rem;
             }
+            #languageSelection ul {
+                display: inline-flex;
+                list-style-type: none;
+                margin: 0;
+                padding: 0;
+            }
+            #languageSelection li {
+                margin-right: 0.5rem;
+            }
+            #languageSelection li:last-child {
+                margin-right: 0;
+            }
+            #languageSelection li.disabled {
+                text-decoration: line-through;
+            }
         </style>
     </head>
     <body>
         <header>
-            <nav>
-                <a href="javascript:(new Params()).metric = 'user'">Process Time</a>
-                <a href="javascript:(new Params()).metric = 'sys'">System Time</a>
-                <a href="javascript:(new Params()).metric = 'maxrss'">Max RSS</a>
+            <nav id="metricSelection">
+                <a href="javascript:;" data-metric="user">Process Time</a>
+                <a href="javascript:;" data-metric="sys">System Time</a>
+                <a href="javascript:;" data-metric="maxrss">Max RSS</a>
             </nav>
         </header>
         <main>
+            <div id="languageSelection">
+                <span>Languages:</span>
+                <ul>
+                    <li data-lang="py">Python</li>
+                    <li data-lang="js">JavaScript</li>
+                    <li data-lang="rs">Rust</li>
+                </ul>
+            </div>
             <canvas id="mainCanvas"></canvas>
         </main>
+
+        <script src="report.js"></script>
     </body>
 </html>
