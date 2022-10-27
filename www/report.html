@@ -13,65 +13,51 @@
                 display: flex;
                 flex-direction: column;
             }
-            header {
-                background: black;
-                color: white;
-                padding: 1rem;
-            }
-            header nav {
-                display: flex;
-            }
-            header nav a {
-                color: white;
-                margin-right: 2rem;
-                text-decoration: none;
-            }
-            header nav a:hover {
-                text-decoration: underline;
-            }
-            header nav a:last-child {
-                margin-right: 0;
-            }
             main {
                 padding: 1rem;
             }
-            #languageSelection ul {
-                display: inline-flex;
-                list-style-type: none;
-                margin: 0;
-                padding: 0;
+            form {
+                display: flex;
+                flex-direction: row;
             }
-            #languageSelection li {
-                margin-right: 0.5rem;
+            fieldset {
+                margin-right: 2rem;
             }
-            #languageSelection li:last-child {
-                margin-right: 0;
-            }
-            #languageSelection li.disabled {
-                text-decoration: line-through;
+            label {
+                font-size: 0.75rem;
             }
         </style>
     </head>
     <body>
-        <header>
-            <nav id="metricSelection">
-                <a href="javascript:;" data-metric="user">Process Time</a>
-                <a href="javascript:;" data-metric="sys">System Time</a>
-                <a href="javascript:;" data-metric="maxrss">Max RSS</a>
-            </nav>
-        </header>
         <main>
-            <div id="languageSelection">
-                <span>Languages:</span>
-                <ul>
-                    <li data-lang="py">Python</li>
-                    <li data-lang="js">JavaScript</li>
-                    <li data-lang="rs">Rust</li>
-                </ul>
-            </div>
+            <form>
+                <fieldset>
+                    <legend>Languages</legend>
+
+                    <input type="checkbox" name="language" id="langJs" value="js"/>
+                    <label for="langJs">JavaScript</label>
+
+                    <input type="checkbox" name="language" id="langPy" value="py"/>
+                    <label for="langPy">Python</label>
+
+                    <input type="checkbox" name="language" id="langRs" value="rs"/>
+                    <label for="langRs">Rust</label>
+                </fieldset>
+                <fieldset>
+                    <legend>Metric</legend>
+
+                    <input type="radio" name="metric" id="metricUser" value="user"/>
+                    <label for="metricUser">Process Time</label>
+
+                    <input type="radio" name="metric" id="metricSys" value="sys"/>
+                    <label for="metricSys">System Time</label>
+
+                    <input type="radio" name="metric" id="metricMaxrss" value="maxrss"/>
+                    <label for="metricMaxrss">Max RSS</label>
+                </fieldset>
+            </form>
             <canvas id="mainCanvas"></canvas>
         </main>
-
         <script src="report.js"></script>
     </body>
 </html>

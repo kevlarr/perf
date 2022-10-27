@@ -220,34 +220,37 @@ const ChartHelpers = {
       case "sys":
         return "Time (seconds)";
       case "maxrss":
-        return "Maximum RSS (MB)";
+        return "Max RSS (MB)";
     }
   },
 };
 
 (async function main() {
-  document.querySelectorAll("#metricSelection a").forEach(node => {
-    const metric = node.getAttribute("data-metric");
+  document
+    .querySelectorAll("input[type=checkbox][name='language']")
+    .forEach(node => {
+      if (!PARAMS.languageDisabled(node.value)) {
+        node.setAttribute("checked", true);
+      }
 
-    node.addEventListener("click", (_evt) => {
-      PARAMS.metric = metric;
+      node.addEventListener("change", () => {
+        node.checked
+          ? PARAMS.enableLanguage(node.value)
+          : PARAMS.disableLanguage(node.value);
+      });
     });
-  });
 
-  document.querySelectorAll("#languageSelection li").forEach(node => {
-    const lang = node.getAttribute("data-lang");
-    const disabled = PARAMS.languageDisabled(lang);
+  document
+    .querySelectorAll("input[type=radio][name='metric']")
+    .forEach(node => {
+      if (PARAMS.metric === node.value) {
+        node.setAttribute("checked", true);
+      }
 
-    if (disabled) {
-      node.classList.add("disabled");
-    }
-
-    node.addEventListener("click", (_evt) => {
-      disabled
-        ? PARAMS.enableLanguage(lang)
-        : PARAMS.disableLanguage(lang);
+      node.addEventListener("change", () => {
+        PARAMS.metric = node.value;
+      });
     });
-  });
 
   const raw = await fetchResults(PARAMS.file);
   const grouped = groupResults(raw, PARAMS.metric);
