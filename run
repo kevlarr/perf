@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-limits=(10000)
+limits=(1000 10000 50000 100000)
 
 outfile=$1
 iterations=$2
