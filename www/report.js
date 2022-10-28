@@ -1,6 +1,7 @@
 /**
  * Utility singleton to make working with known query parameters easier,
  * since not all query parameters are controlled by the `<form>` element
+ * and not all parameters should cause a page reload when updated
  */
 const PARAMS = new (class Params {
   #params;
@@ -106,7 +107,7 @@ const PARAMS = new (class Params {
 async function fetchResults(filename) {
   if (!filename) { return null; }
 
-  return fetch(filename)
+  return fetch(`data/${filename}`)
     .then(resp => {
       if (resp.status === 200) {
         return resp.text();
@@ -144,7 +145,14 @@ function csvToObjects(text) {
     }
 
     objs.push(line.split(",").reduce((obj, val, i) => {
-      obj[cols[i]] = val;
+      let col = cols[i];
+
+      if (col === "maxrss") {
+        val = val / 1024 / 1024;
+      }
+
+      obj[col] = val;
+
       return obj;
     }, {}));
   });
@@ -241,7 +249,7 @@ const ChartHelpers = {
       case "sys":
         return "Time (seconds)";
       case "maxrss":
-        return "Max Resident Set Size (MB)";
+        return "Max Resident Set Size (GB)";
     }
   },
 };
